@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+        text-align: center;
+      }
+      
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        width: 400px;
+      }
+      
+      .question {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+
+      .choicebutton {
+        padding: 15px;
+        width: 100%;
+        font-weight: bold;
+        border-radius: 7px;
+        cursor: pointer;
+        background-color: blue;
+        color: white;
+        border: none;
+        font-size: 18px;
+        margin: 5px 0;
+        transition: 0.3s;
+      }
+
+      .choicebutton:hover {
+        background-color: darkblue;
+      }
+
+      .is-true {
+        background-color: green;
+      }
+
+      .is-false {
+        background-color: red;
+      }
+
+      .score {
+        font-size: 18px;
+        margin: 20px 0;
+        font-weight: bold;
+      }
+
+      .buttons-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .nav-button {
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 7px;
+        cursor: pointer;
+        border: none;
+        transition: 0.3s;
+      }
+
+      .next {
+        background-color: #008CBA;
+        color: white;
+      }
+
+      .next:hover {
+        background-color: #006F9A;
+      }
+
+      .reset {
+        background-color: red;
+        color: white;
+      }
+
+      .reset:hover {
+        background-color: darkred;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="js-q-a question"></div>
+      <div class="js-score score"></div>
+      <div class="buttons-container">
+        <button onclick="displayonebyone();" class="nav-button next">Next Question</button>
+        <button onclick="resetScore()" class="nav-button reset">Reset Score</button>
+      </div>
+    </div>
+    <div class="js-timer"></div>
+  </body>
+  <script>
+    const questions = [
+      { questions: 'What is 2 + 2?', choice: [{ choice: 'a) 4', check: true }, { choice: 'b) 5', check: false }, { choice: 'c) 6', check: false }] },
+      { questions: 'What is 3 + 2?', choice: [{ choice: 'a) 4', check: false }, { choice: 'b) 5', check: true }, { choice: 'c) 6', check: false }] },
+      { questions: 'What is 4 + 2?', choice: [{ choice: 'a) 4', check: false }, { choice: 'b) 5', check: false }, { choice: 'c) 6', check: true }] },
+      { questions: 'What is 5 + 2?', choice: [{ choice: 'a) 4', check: false }, { choice: 'b) 5', check: false }, { choice: 'c) 7', check: true }] },
+    ];
+
+    let score = JSON.parse(localStorage.getItem('score')) || 0;
+    let ischecked = false;
+    let currentIndex = 0;
+
+    function questionsa(i) {
+      let divelement = document.querySelector('.js-q-a');
+      divelement.innerHTML = `<p>${i + 1}. ${questions[i].questions}</p>`;
+      for (let j = 0; j < questions[i].choice.length; j++) {
+        divelement.innerHTML += `
+          <p>
+            <button class="choicebutton js-btn${i}-${j}" onclick="checkAnswers(${questions[i].choice[j].check}, ${i}, ${j})">
+              ${questions[i].choice[j].choice}
+            </button>
+          </p>`;
+      }
+    }
+
+    let divelement2 = document.querySelector('.js-score');
+    divelement2.innerHTML = `Your Score: ${score}`;
+
+    function checkAnswers(isCorrect, ii, ij) {
+      let selectedElement = document.querySelector(`.js-btn${ii}-${ij}`);
+      let scoreelement = document.querySelector('.js-score');
+
+      if (isCorrect) {
+        score++;
+        localStorage.setItem('score', JSON.stringify(score));
+        scoreelement.innerHTML = `Your Score: ${score}`;
+        selectedElement.classList.add('is-true');
+      } else {
+        selectedElement.classList.add('is-false');
+      }
+
+      for (let i = 0; i < questions[ii].choice.length; i++) {
+        let btnElement = document.querySelector(`.js-btn${ii}-${i}`);
+        btnElement.removeAttribute('onclick');
+        if (questions[ii].choice[i].check) {
+          btnElement.classList.add('is-true');
+        }
+      }
+      ischecked = true;
+    }
+
+    function resetScore() {
+      score = 0;
+      localStorage.setItem('score', JSON.stringify(score));
+      document.querySelector('.js-score').innerHTML = `Your Score: ${score}`;
+    }
+
+    function displayonebyone() {
+      if (ischecked && currentIndex < questions.length - 1) {
+        currentIndex++;
+        questionsa(currentIndex);
+        ischecked = false;
+        timerr();
+      }
+    }
+
+    let timer;
+    function timerr() {
+      let time = 10;
+      document.querySelector('.js-timer').innerHTML = `Time left: ${time} seconds`;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        time--;
+        document.querySelector('.js-timer').innerHTML = `Time left: ${time} seconds`;
+
+        if (time === 0 || ischecked) {
+          clearInterval(timer);
+          if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            questionsa(currentIndex);
+            ischecked = false;
+            timerr();
+          }
+        }
+      }, 1000);
+    }
+
+    questionsa(currentIndex);
+    timerr();
+  </script>
+</html>
